@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interval Listening — Consonance Survey</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F7F4EE;
+    --bg2: #EDEAE2;
+    --ink: #1A1814;
+    --ink2: #6B6760;
+    --ink3: #A8A5A0;
+    --accent: #2B4FBF;
+    --accent-light: #E8EDFF;
+    --playing: #1A3A99;
+    --border: #D8D4CC;
+    --card: #FFFFFF;
+    --shadow: 0 1px 3px rgba(26,24,20,0.08), 0 4px 16px rgba(26,24,20,0.06);
+  }
+
+  body {
+    font-family: 'DM Mono', monospace;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 3rem 1.5rem 5rem;
+  }
+
+  .page-wrap { max-width: 620px; margin: 0 auto; }
+  header { margin-bottom: 2.5rem; }
+
+  .label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink3);
+    margin-bottom: 0.75rem;
+  }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 5vw, 2.75rem);
+    line-height: 1.1;
+    color: var(--ink);
+    margin-bottom: 1rem;
+  }
+
+  h1 em { font-style: italic; color: var(--accent); }
+
+  .desc { font-size: 13px; line-height: 1.7; color: var(--ink2); max-width: 480px; }
+
+  .instructions {
+    background: var(--accent-light);
+    border: 1px solid rgba(43,79,191,0.15);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin: 1.75rem 0;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--accent);
+  }
+
+  .loading-banner {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.875rem 1.25rem;
+    margin-bottom: 1rem;
+    font-size: 12px;
+    color: var(--ink2);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-banner.done { background: #EFF8F3; border-color: rgba(22,160,85,0.2); color: #1A7A45; }
+  .loading-banner.done .spinner { border: none; animation: none; font-size: 14px; width: 14px; height: 14px; }
+
+  .volume-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1.25rem;
+    font-size: 11px;
+    color: var(--ink3);
+  }
+
+  .volume-row input[type=range] { flex: 1; accent-color: var(--accent); cursor: pointer; }
+
+  .grid { display: flex; flex-direction: column; gap: 10px; }
+
+  .interval-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s, opacity 0.2s;
+    box-shadow: var(--shadow);
+    user-select: none;
+    opacity: 0.45;
+    pointer-events: none;
+  }
+
+  .interval-card.ready { opacity: 1; pointer-events: auto; }
+  .interval-card.ready:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(43,79,191,0.12), 0 6px 20px rgba(43,79,191,0.08); transform: translateY(-1px); }
+  .interval-card.ready:active { transform: translateY(0); }
+  .interval-card.playing { border-color: var(--playing); background: #F0F4FF; box-shadow: 0 0 0 3px rgba(43,79,191,0.1); }
+
+  .play-btn {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .interval-card.playing .play-btn { background: var(--accent); border-color: var(--accent); }
+
+  .play-icon {
+    width: 0; height: 0;
+    border-style: solid;
+    border-width: 6px 0 6px 10px;
+    border-color: transparent transparent transparent var(--ink2);
+    margin-left: 2px;
+  }
+
+  .interval-card.playing .play-icon { display: none; }
+  .stop-icon { display: none; width: 10px; height: 10px; background: #fff; border-radius: 2px; }
+  .interval-card.playing .stop-icon { display: block; }
+
+  .info { flex: 1; }
+
+  .interval-name { font-family: 'DM Serif Display', serif; font-size: 17px; color: var(--ink); margin-bottom: 2px; }
+  .interval-notes { font-size: 11px; color: var(--ink3); letter-spacing: 0.04em; }
+
+  .progress-bar-wrap { height: 2px; background: var(--bg2); border-radius: 1px; margin-top: 0.5rem; overflow: hidden; display: none; }
+  .interval-card.playing .progress-bar-wrap { display: block; }
+  .progress-bar { height: 100%; background: var(--accent); border-radius: 1px; width: 0%; transition: width 0.1s linear; }
+
+  .wave-viz { display: flex; align-items: center; gap: 2px; height: 24px; flex-shrink: 0; }
+  .wave-bar { width: 3px; border-radius: 2px; background: var(--border); transition: background 0.15s; }
+  .interval-card.playing .wave-bar { background: var(--accent); }
+
+  .ratio-badge {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.05em;
+    color: var(--ink3); background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 4px; padding: 3px 8px; flex-shrink: 0;
+  }
+
+  .interval-card.playing .ratio-badge { color: var(--accent); background: var(--accent-light); border-color: rgba(43,79,191,0.2); }
+
+  footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); font-size: 11px; color: var(--ink3); line-height: 1.6; }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+  <header>
+    <div class="label">Mathematics IA &nbsp;·&nbsp; Listening Survey</div>
+    <h1>Musical <em>Interval</em><br>Audio Reference</h1>
+    <p class="desc">Press any card to hear that interval played on piano. Listen as many times as you like, then return to the Microsoft Form to submit your ranking.</p>
+  </header>
+
+  <div class="instructions">
+    <strong>Before you begin:</strong> Put on headphones or earphones. Wait for samples to load, then press each card to hear the two notes played together. There are no right or wrong answers — go with your gut.
+  </div>
+
+  <div class="loading-banner" id="loadBanner">
+    <div class="spinner" id="spinner"></div>
+    <span id="loadText">Loading piano samples — please wait…</span>
+  </div>
+
+  <div class="volume-row">
+    <span>Volume</span>
+    <input type="range" id="volSlider" min="0" max="100" value="50" step="1">
+    <span id="volLabel">50%</span>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <footer>
+    Piano samples: gleitz/midi.js-soundfonts (MusyngKite acoustic grand piano).<br>
+    All intervals use C4 as the base note.
+  </footer>
+</div>
+
+<script>
+const intervals = [
+  { name: "Unison",      notes: "C4 – C4",  midi1: 60, midi2: 60, ratio: "1 : 1"   },
+  { name: "Perfect 5th", notes: "C4 – G4",  midi1: 60, midi2: 67, ratio: "2 : 3"   },
+  { name: "Major 6th",   notes: "C4 – A4",  midi1: 60, midi2: 69, ratio: "3 : 5"   },
+  { name: "Minor 3rd",   notes: "C4 – Eb4", midi1: 60, midi2: 63, ratio: "5 : 6"   },
+  { name: "Major 2nd",   notes: "C4 – D4",  midi1: 60, midi2: 62, ratio: "8 : 9"   },
+  { name: "Major 7th",   notes: "C4 – B4",  midi1: 60, midi2: 71, ratio: "8 : 15"  },
+  { name: "Tritone",     notes: "C4 – F#4", midi1: 60, midi2: 66, ratio: "32 : 45" },
+];
+
+const waveBars = [14, 20, 10, 24, 8, 18, 12, 22, 6, 16, 20, 8];
+const BASE = "https://gleitz.github.io/midi.js-soundfonts/MusyngKite/acoustic_grand_piano-mp3/";
+
+const NOTE_NAMES = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
+function midiToName(m) { return NOTE_NAMES[m % 12] + (Math.floor(m / 12) - 1); }
+
+let actx = null, masterGain = null;
+const buffers = {};
+
+function initCtx() {
+  if (!actx) {
+    actx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = actx.createGain();
+    masterGain.gain.value = 0.5;
+    masterGain.connect(actx.destination);
+  }
+}
+
+async function loadAll() {
+  initCtx();
+  const needed = [...new Set(intervals.flatMap(i => [i.midi1, i.midi2]))];
+  await Promise.all(needed.map(async midi => {
+    const url = BASE + encodeURIComponent(midiToName(midi)) + ".mp3";
+    const res = await fetch(url);
+    const arr = await res.arrayBuffer();
+    buffers[midi] = await actx.decodeAudioData(arr);
+  }));
+}
+
+let sources = [], activeCard = null, raf = null, t0 = null;
+const DURATION = 3.5;
+
+function stopAll() {
+  sources.forEach(s => { try { s.stop(); } catch(e){} });
+  sources = [];
+  if (raf) { cancelAnimationFrame(raf); raf = null; }
+  if (activeCard) {
+    activeCard.classList.remove('playing');
+    activeCard.querySelectorAll('.wave-bar').forEach((b,i) => b.style.height = waveBars[i % waveBars.length] + 'px');
+    const pb = activeCard.querySelector('.progress-bar');
+    if (pb) pb.style.width = '0%';
+    activeCard = null;
+  }
+  t0 = null;
+}
+
+function playNote(midi) {
+  const buf = buffers[midi];
+  if (!buf) return null;
+  const src = actx.createBufferSource();
+  src.buffer = buf;
+  const g = actx.createGain();
+  g.gain.setValueAtTime(0, actx.currentTime);
+  g.gain.linearRampToValueAtTime(1, actx.currentTime + 0.03);
+  g.gain.setValueAtTime(1, actx.currentTime + DURATION - 0.5);
+  g.gain.linearRampToValueAtTime(0, actx.currentTime + DURATION);
+  src.connect(g);
+  g.connect(masterGain);
+  src.start();
+  src.stop(actx.currentTime + DURATION);
+  return src;
+}
+
+function play(midi1, midi2, card) {
+  stopAll();
+  if (actx.state === 'suspended') actx.resume();
+  activeCard = card;
+  card.classList.add('playing');
+  t0 = actx.currentTime;
+  const s1 = playNote(midi1);
+  const s2 = midi1 !== midi2 ? playNote(midi2) : null;
+  if (s1) sources.push(s1);
+  if (s2) sources.push(s2);
+
+  const bars = card.querySelectorAll('.wave-bar');
+  const pb = card.querySelector('.progress-bar');
+
+  function tick() {
+    const el = actx.currentTime - t0;
+    if (el >= DURATION) { stopAll(); return; }
+    if (pb) pb.style.width = (el / DURATION * 100) + '%';
+    bars.forEach((b, i) => {
+      const base = waveBars[i % waveBars.length];
+      const h = Math.max(3, base * (0.4 + 0.6 * Math.abs(Math.sin(Date.now() / 90 + i * 1.4))));
+      b.style.height = h + 'px';
+    });
+    raf = requestAnimationFrame(tick);
+  }
+  tick();
+}
+
+// Build cards
+const grid = document.getElementById('grid');
+const cards = [];
+
+intervals.forEach(({ name, notes, midi1, midi2, ratio }) => {
+  const card = document.createElement('div');
+  card.className = 'interval-card';
+  card.innerHTML = `
+    <div class="play-btn"><div class="play-icon"></div><div class="stop-icon"></div></div>
+    <div class="info">
+      <div class="interval-name">${name}</div>
+      <div class="interval-notes">${notes}</div>
+      <div class="progress-bar-wrap"><div class="progress-bar"></div></div>
+    </div>
+    <div class="wave-viz">${waveBars.map(h => `<div class="wave-bar" style="height:${h}px"></div>`).join('')}</div>
+    <div class="ratio-badge">${ratio}</div>
+  `;
+  card.addEventListener('click', () => {
+    card.classList.contains('playing') ? stopAll() : play(midi1, midi2, card);
+  });
+  grid.appendChild(card);
+  cards.push(card);
+});
+
+// Volume
+const volSlider = document.getElementById('volSlider');
+const volLabel = document.getElementById('volLabel');
+volSlider.addEventListener('input', () => {
+  volLabel.textContent = volSlider.value + '%';
+  if (masterGain) masterGain.gain.value = volSlider.value / 100;
+});
+
+// Load
+const banner = document.getElementById('loadBanner');
+const spinner = document.getElementById('spinner');
+const loadText = document.getElementById('loadText');
+
+loadAll().then(() => {
+  cards.forEach(c => c.classList.add('ready'));
+  banner.classList.add('done');
+  spinner.textContent = '✓';
+  loadText.textContent = 'Piano ready — press any interval to listen.';
+}).catch(err => {
+  loadText.textContent = 'Could not load samples. Check your internet connection and refresh.';
+  console.error(err);
+});
+</script>
+</body>
+</html>
