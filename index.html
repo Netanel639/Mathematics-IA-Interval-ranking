@@ -65,33 +65,6 @@
     color: var(--accent);
   }
 
-  .loading-banner {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 0.875rem 1.25rem;
-    margin-bottom: 1rem;
-    font-size: 12px;
-    color: var(--ink2);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .spinner {
-    width: 14px; height: 14px;
-    border: 2px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    flex-shrink: 0;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .loading-banner.done { background: #EFF8F3; border-color: rgba(22,160,85,0.2); color: #1A7A45; }
-  .loading-banner.done .spinner { border: none; animation: none; font-size: 14px; width: 14px; height: 14px; }
-
   .volume-row {
     display: flex;
     align-items: center;
@@ -114,17 +87,25 @@
     align-items: center;
     gap: 1rem;
     cursor: pointer;
-    transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s, opacity 0.2s;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
     box-shadow: var(--shadow);
     user-select: none;
-    opacity: 0.45;
-    pointer-events: none;
+    -webkit-user-select: none;
   }
 
-  .interval-card.ready { opacity: 1; pointer-events: auto; }
-  .interval-card.ready:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(43,79,191,0.12), 0 6px 20px rgba(43,79,191,0.08); transform: translateY(-1px); }
-  .interval-card.ready:active { transform: translateY(0); }
-  .interval-card.playing { border-color: var(--playing); background: #F0F4FF; box-shadow: 0 0 0 3px rgba(43,79,191,0.1); }
+  .interval-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 2px 8px rgba(43,79,191,0.12), 0 6px 20px rgba(43,79,191,0.08);
+    transform: translateY(-1px);
+  }
+
+  .interval-card:active { transform: translateY(0); }
+
+  .interval-card.playing {
+    border-color: var(--playing);
+    background: #F0F4FF;
+    box-shadow: 0 0 0 3px rgba(43,79,191,0.1);
+  }
 
   .play-btn {
     width: 40px; height: 40px;
@@ -151,13 +132,12 @@
   .interval-card.playing .stop-icon { display: block; }
 
   .info { flex: 1; }
-
   .interval-name { font-family: 'DM Serif Display', serif; font-size: 17px; color: var(--ink); margin-bottom: 2px; }
   .interval-notes { font-size: 11px; color: var(--ink3); letter-spacing: 0.04em; }
 
   .progress-bar-wrap { height: 2px; background: var(--bg2); border-radius: 1px; margin-top: 0.5rem; overflow: hidden; display: none; }
   .interval-card.playing .progress-bar-wrap { display: block; }
-  .progress-bar { height: 100%; background: var(--accent); border-radius: 1px; width: 0%; transition: width 0.1s linear; }
+  .progress-bar { height: 100%; background: var(--accent); border-radius: 1px; width: 0%; }
 
   .wave-viz { display: flex; align-items: center; gap: 2px; height: 24px; flex-shrink: 0; }
   .wave-bar { width: 3px; border-radius: 2px; background: var(--border); transition: background 0.15s; }
@@ -169,9 +149,15 @@
     border-radius: 4px; padding: 3px 8px; flex-shrink: 0;
   }
 
-  .interval-card.playing .ratio-badge { color: var(--accent); background: var(--accent-light); border-color: rgba(43,79,191,0.2); }
+  .interval-card.playing .ratio-badge {
+    color: var(--accent); background: var(--accent-light); border-color: rgba(43,79,191,0.2);
+  }
 
-  footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); font-size: 11px; color: var(--ink3); line-height: 1.6; }
+  footer {
+    margin-top: 3rem; padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    font-size: 11px; color: var(--ink3); line-height: 1.6;
+  }
 </style>
 </head>
 <body>
@@ -179,180 +165,151 @@
   <header>
     <div class="label">Mathematics IA &nbsp;·&nbsp; Listening Survey</div>
     <h1>Musical <em>Interval</em><br>Audio Reference</h1>
-    <p class="desc">Press any card to hear that interval played on piano. Listen as many times as you like, then return to the Microsoft Form to submit your ranking.</p>
+    <p class="desc">Press any card to hear that pair of notes. You can listen as many times as you like before completing the ranking survey.</p>
   </header>
 
   <div class="instructions">
-    <strong>Before you begin:</strong> Put on headphones or earphones. Wait for samples to load, then press each card to hear the two notes played together. There are no right or wrong answers — go with your gut.
-  </div>
-
-  <div class="loading-banner" id="loadBanner">
-    <div class="spinner" id="spinner"></div>
-    <span id="loadText">Loading piano samples — please wait…</span>
+    <strong>Before you begin:</strong> Put on headphones or earphones. Each clip plays two notes simultaneously for about 3 seconds. Listen to all seven intervals, then return to the Microsoft Form to submit your ranking.
   </div>
 
   <div class="volume-row">
     <span>Volume</span>
-    <input type="range" id="volSlider" min="0" max="100" value="50" step="1">
-    <span id="volLabel">50%</span>
+    <input type="range" id="volSlider" min="0" max="100" value="35" step="1">
+    <span id="volLabel">35%</span>
   </div>
 
   <div class="grid" id="grid"></div>
 
   <footer>
-    Piano samples: gleitz/midi.js-soundfonts (MusyngKite acoustic grand piano).<br>
-    All intervals use C4 as the base note.
+    Sound generated via Web Audio API — no files downloaded, no internet required after page load.<br>
+    All intervals are built from C4 (261.6 Hz) as the base note.
   </footer>
 </div>
 
 <script>
-const intervals = [
-  { name: "Unison",      notes: "C4 – C4",  midi1: 60, midi2: 60, ratio: "1 : 1"   },
-  { name: "Perfect 5th", notes: "C4 – G4",  midi1: 60, midi2: 67, ratio: "2 : 3"   },
-  { name: "Major 6th",   notes: "C4 – A4",  midi1: 60, midi2: 69, ratio: "3 : 5"   },
-  { name: "Minor 3rd",   notes: "C4 – Eb4", midi1: 60, midi2: 63, ratio: "5 : 6"   },
-  { name: "Major 2nd",   notes: "C4 – D4",  midi1: 60, midi2: 62, ratio: "8 : 9"   },
-  { name: "Major 7th",   notes: "C4 – B4",  midi1: 60, midi2: 71, ratio: "8 : 15"  },
-  { name: "Tritone",     notes: "C4 – F#4", midi1: 60, midi2: 66, ratio: "32 : 45" },
-];
+  const intervals = [
+    { name: "Unison",      notes: "C4 – C4",  f1: 261.63, f2: 261.63, ratio: "1 : 1"   },
+    { name: "Perfect 5th", notes: "C4 – G4",  f1: 261.63, f2: 392.00, ratio: "2 : 3"   },
+    { name: "Major 6th",   notes: "C4 – A4",  f1: 261.63, f2: 440.00, ratio: "3 : 5"   },
+    { name: "Minor 3rd",   notes: "C4 – Eb4", f1: 261.63, f2: 311.13, ratio: "5 : 6"   },
+    { name: "Major 2nd",   notes: "C4 – D4",  f1: 261.63, f2: 293.66, ratio: "8 : 9"   },
+    { name: "Major 7th",   notes: "C4 – B4",  f1: 261.63, f2: 493.88, ratio: "8 : 15"  },
+    { name: "Tritone",     notes: "C4 – F#4", f1: 261.63, f2: 369.99, ratio: "32 : 45" },
+  ];
 
-const waveBars = [14, 20, 10, 24, 8, 18, 12, 22, 6, 16, 20, 8];
-const BASE = "https://gleitz.github.io/midi.js-soundfonts/MusyngKite/acoustic_grand_piano-mp3/";
+  const waveBars = [14, 20, 10, 24, 8, 18, 12, 22, 6, 16, 20, 8];
+  const DURATION = 3.0;
 
-const NOTE_NAMES = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
-function midiToName(m) { return NOTE_NAMES[m % 12] + (Math.floor(m / 12) - 1); }
+  let actx = null, masterGain = null;
 
-let actx = null, masterGain = null;
-const buffers = {};
-
-function initCtx() {
-  if (!actx) {
-    actx = new (window.AudioContext || window.webkitAudioContext)();
-    masterGain = actx.createGain();
-    masterGain.gain.value = 0.5;
-    masterGain.connect(actx.destination);
+  function initCtx() {
+    if (!actx) {
+      actx = new (window.AudioContext || window.webkitAudioContext)();
+      masterGain = actx.createGain();
+      masterGain.gain.value = 0.35;
+      masterGain.connect(actx.destination);
+    }
+    if (actx.state === 'suspended') actx.resume();
   }
-}
 
-async function loadAll() {
-  initCtx();
-  const needed = [...new Set(intervals.flatMap(i => [i.midi1, i.midi2]))];
-  await Promise.all(needed.map(async midi => {
-    const url = BASE + encodeURIComponent(midiToName(midi)) + ".mp3";
-    const res = await fetch(url);
-    const arr = await res.arrayBuffer();
-    buffers[midi] = await actx.decodeAudioData(arr);
-  }));
-}
+  let sources = [], activeCard = null, raf = null, t0 = null;
 
-let sources = [], activeCard = null, raf = null, t0 = null;
-const DURATION = 3.5;
-
-function stopAll() {
-  sources.forEach(s => { try { s.stop(); } catch(e){} });
-  sources = [];
-  if (raf) { cancelAnimationFrame(raf); raf = null; }
-  if (activeCard) {
-    activeCard.classList.remove('playing');
-    activeCard.querySelectorAll('.wave-bar').forEach((b,i) => b.style.height = waveBars[i % waveBars.length] + 'px');
-    const pb = activeCard.querySelector('.progress-bar');
-    if (pb) pb.style.width = '0%';
-    activeCard = null;
+  function stopAll() {
+    sources.forEach(s => { try { s.osc.stop(); } catch(e){} });
+    sources = [];
+    if (raf) { cancelAnimationFrame(raf); raf = null; }
+    if (activeCard) {
+      activeCard.classList.remove('playing');
+      activeCard.querySelectorAll('.wave-bar').forEach((b, i) => {
+        b.style.height = waveBars[i % waveBars.length] + 'px';
+      });
+      const pb = activeCard.querySelector('.progress-bar');
+      if (pb) pb.style.width = '0%';
+      activeCard = null;
+    }
+    t0 = null;
   }
-  t0 = null;
-}
 
-function playNote(midi) {
-  const buf = buffers[midi];
-  if (!buf) return null;
-  const src = actx.createBufferSource();
-  src.buffer = buf;
-  const g = actx.createGain();
-  g.gain.setValueAtTime(0, actx.currentTime);
-  g.gain.linearRampToValueAtTime(1, actx.currentTime + 0.03);
-  g.gain.setValueAtTime(1, actx.currentTime + DURATION - 0.5);
-  g.gain.linearRampToValueAtTime(0, actx.currentTime + DURATION);
-  src.connect(g);
-  g.connect(masterGain);
-  src.start();
-  src.stop(actx.currentTime + DURATION);
-  return src;
-}
+  function makeNote(freq) {
+    const osc = actx.createOscillator();
+    const gain = actx.createGain();
 
-function play(midi1, midi2, card) {
-  stopAll();
-  if (actx.state === 'suspended') actx.resume();
-  activeCard = card;
-  card.classList.add('playing');
-  t0 = actx.currentTime;
-  const s1 = playNote(midi1);
-  const s2 = midi1 !== midi2 ? playNote(midi2) : null;
-  if (s1) sources.push(s1);
-  if (s2) sources.push(s2);
+    // Use triangle wave — much softer and more musical than sine
+    osc.type = 'triangle';
+    osc.frequency.value = freq;
 
-  const bars = card.querySelectorAll('.wave-bar');
-  const pb = card.querySelector('.progress-bar');
+    const now = actx.currentTime;
+    // Piano-like envelope: fast attack, slow decay, low sustain, fade out
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(1, now + 0.015);       // sharp attack
+    gain.gain.exponentialRampToValueAtTime(0.35, now + 0.3); // quick decay
+    gain.gain.exponentialRampToValueAtTime(0.15, now + 1.2); // sustain fall
+    gain.gain.exponentialRampToValueAtTime(0.001, now + DURATION); // release
 
-  function tick() {
-    const el = actx.currentTime - t0;
-    if (el >= DURATION) { stopAll(); return; }
-    if (pb) pb.style.width = (el / DURATION * 100) + '%';
-    bars.forEach((b, i) => {
-      const base = waveBars[i % waveBars.length];
-      const h = Math.max(3, base * (0.4 + 0.6 * Math.abs(Math.sin(Date.now() / 90 + i * 1.4))));
-      b.style.height = h + 'px';
+    osc.connect(gain);
+    gain.connect(masterGain);
+    osc.start(now);
+    osc.stop(now + DURATION);
+    return { osc, gain };
+  }
+
+  function play(f1, f2, card) {
+    stopAll();
+    initCtx();
+    activeCard = card;
+    card.classList.add('playing');
+    t0 = actx.currentTime;
+
+    sources.push(makeNote(f1));
+    if (Math.abs(f1 - f2) > 0.5) sources.push(makeNote(f2));
+
+    const bars = card.querySelectorAll('.wave-bar');
+    const pb = card.querySelector('.progress-bar');
+
+    function tick() {
+      const el = actx.currentTime - t0;
+      if (el >= DURATION) { stopAll(); return; }
+      if (pb) pb.style.width = (el / DURATION * 100).toFixed(1) + '%';
+      bars.forEach((b, i) => {
+        const base = waveBars[i % waveBars.length];
+        const h = Math.max(3, base * (0.4 + 0.6 * Math.abs(Math.sin(Date.now() / 90 + i * 1.4))));
+        b.style.height = h.toFixed(1) + 'px';
+      });
+      raf = requestAnimationFrame(tick);
+    }
+    tick();
+  }
+
+  // Build cards
+  const grid = document.getElementById('grid');
+
+  intervals.forEach(({ name, notes, f1, f2, ratio }) => {
+    const card = document.createElement('div');
+    card.className = 'interval-card';
+    card.innerHTML = `
+      <div class="play-btn"><div class="play-icon"></div><div class="stop-icon"></div></div>
+      <div class="info">
+        <div class="interval-name">${name}</div>
+        <div class="interval-notes">${notes}</div>
+        <div class="progress-bar-wrap"><div class="progress-bar"></div></div>
+      </div>
+      <div class="wave-viz">${waveBars.map(h => `<div class="wave-bar" style="height:${h}px"></div>`).join('')}</div>
+      <div class="ratio-badge">${ratio}</div>
+    `;
+    card.addEventListener('click', () => {
+      card.classList.contains('playing') ? stopAll() : play(f1, f2, card);
     });
-    raf = requestAnimationFrame(tick);
-  }
-  tick();
-}
-
-// Build cards
-const grid = document.getElementById('grid');
-const cards = [];
-
-intervals.forEach(({ name, notes, midi1, midi2, ratio }) => {
-  const card = document.createElement('div');
-  card.className = 'interval-card';
-  card.innerHTML = `
-    <div class="play-btn"><div class="play-icon"></div><div class="stop-icon"></div></div>
-    <div class="info">
-      <div class="interval-name">${name}</div>
-      <div class="interval-notes">${notes}</div>
-      <div class="progress-bar-wrap"><div class="progress-bar"></div></div>
-    </div>
-    <div class="wave-viz">${waveBars.map(h => `<div class="wave-bar" style="height:${h}px"></div>`).join('')}</div>
-    <div class="ratio-badge">${ratio}</div>
-  `;
-  card.addEventListener('click', () => {
-    card.classList.contains('playing') ? stopAll() : play(midi1, midi2, card);
+    grid.appendChild(card);
   });
-  grid.appendChild(card);
-  cards.push(card);
-});
 
-// Volume
-const volSlider = document.getElementById('volSlider');
-const volLabel = document.getElementById('volLabel');
-volSlider.addEventListener('input', () => {
-  volLabel.textContent = volSlider.value + '%';
-  if (masterGain) masterGain.gain.value = volSlider.value / 100;
-});
-
-// Load
-const banner = document.getElementById('loadBanner');
-const spinner = document.getElementById('spinner');
-const loadText = document.getElementById('loadText');
-
-loadAll().then(() => {
-  cards.forEach(c => c.classList.add('ready'));
-  banner.classList.add('done');
-  spinner.textContent = '✓';
-  loadText.textContent = 'Piano ready — press any interval to listen.';
-}).catch(err => {
-  loadText.textContent = 'Could not load samples. Check your internet connection and refresh.';
-  console.error(err);
-});
+  // Volume control
+  const volSlider = document.getElementById('volSlider');
+  const volLabel  = document.getElementById('volLabel');
+  volSlider.addEventListener('input', () => {
+    const v = volSlider.value / 100;
+    volLabel.textContent = volSlider.value + '%';
+    if (masterGain) masterGain.gain.value = v;
+  });
 </script>
 </body>
 </html>
